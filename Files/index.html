@@ -1,163 +1,288 @@
 ﻿<!DOCTYPE html>
 <html>
-  <head>
-    <link rel="stylesheet" href="css/style.css" />
-    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-    <title>Demo app</title>
-    <link href="https://fonts.googleapis.com/css?family=Titillium+Web:300,400,600" rel="stylesheet">
 
-    <script>
-      function dragResize(edge){
-        overwolf.windows.getCurrentWindow(function(result){
-          if (result.status=="success"){
-            overwolf.windows.dragResize(result.window.id, edge);
-          }
-        });
-      };
+<head>
+  <link rel="stylesheet" href="css/style.css" />
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+  <title>Demo app</title>
+  <link href="https://fonts.googleapis.com/css?family=Titillium+Web:300,400,600" rel="stylesheet">
 
-      function dragMove(){
-        overwolf.windows.getCurrentWindow(function(result){
-          if (result.status=="success" && result.window.state !== "Maximized"){
-            overwolf.windows.dragMove(result.window.id);
-          }
-        });
-      };
+  <script>
+    function dragResize(edge) {
+      overwolf.windows.getCurrentWindow(function (result) {
+        if (result.status == "success") {
+          overwolf.windows.dragResize(result.window.id, edge);
+        }
+      });
+    };
 
-      function closeWindow(){
-        overwolf.windows.getCurrentWindow(function(result){
-          if (result.status=="success"){
-            overwolf.windows.close(result.window.id);
-          }
-        });
-      };
+    function dragMove() {
+      overwolf.windows.getCurrentWindow(function (result) {
+        if (result.status == "success" && result.window.state !== "Maximized") {
+          overwolf.windows.dragMove(result.window.id);
+        }
+      });
+    };
 
-      function minimize(){
-        overwolf.windows.getCurrentWindow(function(result){
-          if (result.status=="success"){
-            overwolf.windows.minimize(result.window.id);
-          }
-        });
-      };
+    function closeWindow() {
+      overwolf.windows.getCurrentWindow(function (result) {
+        if (result.status == "success") {
+          overwolf.windows.close(result.window.id);
+        }
+      });
+    };
 
-      function toggleMaximize(){
-        let element = document.querySelector('.maximize-restore-selector'),
-            root = document.documentElement;
+    function minimize() {
+      overwolf.windows.getCurrentWindow(function (result) {
+        if (result.status == "success") {
+          overwolf.windows.minimize(result.window.id);
+        }
+      });
+    };
 
-        overwolf.windows.getCurrentWindow(function(result){
-          if (result.status !== "success") {
-            return;
-          }
+    function toggleMaximize() {
+      let element = document.querySelector('.maximize-restore-selector'),
+        root = document.documentElement;
 
-          if (element.checked) {
-            overwolf.windows.restore(result.window.id);
-            root.classList.remove('maximized');
-          } else {
-            overwolf.windows.maximize(result.window.id);
-            root.classList.add('maximized');
-          }
-        });
-      };
+      overwolf.windows.getCurrentWindow(function (result) {
+        if (result.status !== "success") {
+          return;
+        }
 
-      function showSupport() {
-        window.location.href = "overwolf://settings/support";
-      };
+        if (element.checked) {
+          overwolf.windows.restore(result.window.id);
+          root.classList.remove('maximized');
+        } else {
+          overwolf.windows.maximize(result.window.id);
+          root.classList.add('maximized');
+        }
+      });
+    };
 
-      function openSubWindow(){
-        alert("the subwindow will only be visible inside a game");
-        overwolf.windows.obtainDeclaredWindow("SubWindow", function(result){
-          if (result.status == "success"){
-            overwolf.windows.restore(result.window.id, function(result){
-                console.log(result);
-            });
-          }
-        });
-      };
+    function showSupport() {
+      window.location.href = "overwolf://settings/support";
+    };
 
-      function takeScreenshot(){
-        overwolf.media.takeScreenshot(function(result){
-          if (result.status == "success"){
-            var img = document.getElementById("screenshot");
-            img.src = result.url;
-            img.onload = function() {
-              overwolf.media.shareImage(img, "Screen Shot");
-            };
-          }
-        });
+    function openSubWindow() {
+      alert("the subwindow will only be visible inside a game");
+      overwolf.windows.obtainDeclaredWindow("SubWindow", function (result) {
+        if (result.status == "success") {
+          overwolf.windows.restore(result.window.id, function (result) {
+            console.log(result);
+          });
+        }
+      });
+    };
+
+    function takeScreenshot() {
+      overwolf.media.takeScreenshot(function (result) {
+        if (result.status == "success") {
+          var img = document.getElementById("screenshot");
+          img.src = result.url;
+          img.onload = function () {
+            overwolf.media.shareImage(img, "Screen Shot");
+          };
+        }
+      });
+    }
+
+    function runTeamSpeak() {
+      overwolf.extensions.launch("lmkhofgknaclgcdplfkgcahdkdmomimaoklioonf");
+    };
+
+    // this a subset of the features that LoL events provides - however,
+    // when writing an app that consumes events - it is best if you request
+    // only those features that you want to handle.
+    //
+    // NOTE: in the future we'll have a wildcard option to allow retreiving all
+    // features
+    var g_interestedInFeatures = [
+      'summoner_info',
+      'gameMode',
+      'teams',
+      'matchState',
+      'kill',
+      'death',
+      'respawn',
+      'assist',
+      'minions',
+      'level',
+      'abilities',
+      'announcer',
+      'counters',
+      'match_info'
+      // 'gold'
+    ];
+
+    function registerEvents() {
+      // general events errors
+      overwolf.games.events.onError.addListener(function (info) {
+        console.log("Error: " + JSON.stringify(info));
+      });
+
+      // "static" data changed (total kills, username, steam-id)
+      // This will also be triggered the first time we register
+      // for events and will contain all the current information
+      overwolf.games.events.onInfoUpdates2.addListener(function (info) {
+        console.log("Info UPDATE: " + JSON.stringify(info));
+      });
+
+      // an event triggerd
+      overwolf.games.events.onNewEvents.addListener(function (info) {
+        console.log("EVENT FIRED: " + JSON.stringify(info));
+      });
+    }
+
+    function gameLaunched(gameInfoResult) {
+      if (!gameInfoResult) {
+        return false;
       }
 
-      function runTeamSpeak(){
-        overwolf.extensions.launch("lmkhofgknaclgcdplfkgcahdkdmomimaoklioonf");
-      };
-    </script>
-  </head>
+      if (!gameInfoResult.gameInfo) {
+        return false;
+      }
 
-  <body>
-    <div class="content" onmousedown="dragMove();">
+      if (!gameInfoResult.runningChanged && !gameInfoResult.gameChanged) {
+        return false;
+      }
 
-      <header>
+      if (!gameInfoResult.gameInfo.isRunning) {
+        return false;
+      }
 
+      // NOTE: we divide by 10 to get the game class id without it's sequence number
+      if (Math.floor(gameInfoResult.gameInfo.id / 10) != 5426) {
+        return false;
+      }
 
-        <div class="window-controls-group">
-          <button class="window-control" onclick="showSupport()">
-            <svg class="svg-icon-fill">
-              <use xlink:href="assets/svg/sprite.svg#window-control_support" />
-            </svg>
-          </button>
+      console.log("LoL Launched");
+      return true;
 
-          <button class="window-control">
-            <svg class="svg-icon-fill">
-              <use xlink:href="assets/svg/sprite.svg#window-control_settings" />
-            </svg>
-          </button>
+    }
 
-          <button class="window-control" onclick="minimize()">
-            <svg class="svg-icon-fill">
-              <use xlink:href="assets/svg/sprite.svg#window-control_minimize" />
-            </svg>
-          </button>
+    function gameRunning(gameInfo) {
 
-          <button class="window-control" onclick="toggleMaximize()">
-            <input type="checkbox" class="maximize-restore-selector toggle-icons" checked />
-            <svg class="svg-icon-fill svg-icon-restore">
-              <use xlink:href="assets/svg/sprite.svg#window-control_restore" />
-            </svg>
-            <svg class="svg-icon-fill svg-icon-maximize">
-              <use xlink:href="assets/svg/sprite.svg#window-control_maximize" />
-            </svg>
-          </button>
+      if (!gameInfo) {
+        return false;
+      }
 
-          <button class="window-control window-control-close" onclick="closeWindow();">
-            <svg class="svg-icon-fill">
-              <use xlink:href="assets/svg/sprite.svg#window-control_close" />
-            </svg>
-          </button>
-        </div>
-      </header>
+      if (!gameInfo.isRunning) {
+        return false;
+      }
 
-      <main>
-        <h1>Hello, world!</h1>
-        <p>You can drag from anywhere you want, and resize from the edges</p>
+      // NOTE: we divide by 10 to get the game class id without it's sequence number
+      if (Math.floor(gameInfo.id / 10) != 5426) {
+        return false;
+      }
 
-        <div class="btn-group">
-          <button class="btn" id="close" onclick="closeWindow();">Close</button>
-          <button class="btn" id="run-teamspeak" onclick="runTeamSpeak();">Run TeamSpeak</button>
-          <button class="btn" onclick="takeScreenshot();">Take Screenshot</button>
-          <button class="btn" id="open-subwindow" onclick="openSubWindow();">Open Sub-Window</button>
-        </div>
+      console.log("LoL running");
+      return true;
+
+    }
 
 
-        <img id="screenshot" width="300px"></img>
-      </main>
-    </div>
+    function setFeatures() {
+      overwolf.games.events.setRequiredFeatures(g_interestedInFeatures, function (info) {
+        if (info.status == "error") {
+          //console.log("Could not set required features: " + info.reason);
+          //console.log("Trying in 2 seconds");
+          window.setTimeout(setFeatures, 2000);
+          return;
+        }
 
-    <div class="resize horizontal top" onmousedown="dragResize('Top');"></div>
-    <div class="resize vertical left" onmousedown="dragResize('Left');"></div>
-    <div class="resize vertical right" onmousedown="dragResize('Right');"></div>
-    <div class="resize horizontal bottom" onmousedown="dragResize('Bottom');"></div>
+        console.log("Set required features:");
+        console.log(JSON.stringify(info));
+      });
+    }
 
-    <div class="resize corner top-left" onmousedown="dragResize('TopLeft');"></div>
-    <div class="resize corner top-right" onmousedown="dragResize('TopRight');"></div>
-    <div class="resize corner bottom-left" onmousedown="dragResize('BottomLeft');"></div>
-    <div class="resize corner bottom-right" onmousedown="dragResize('BottomRight');"></div>
-  </body>
+
+    // Start here
+    overwolf.games.onGameInfoUpdated.addListener(function (res) {
+      if (gameLaunched(res)) {
+        registerEvents();
+        setTimeout(setFeatures, 1000);
+      }
+      console.log("onGameInfoUpdated: " + JSON.stringify(res));
+    });
+
+    overwolf.games.getRunningGameInfo(function (res) {
+      if (gameRunning(res)) {
+        registerEvents();
+        setTimeout(setFeatures, 1000);
+      }
+      console.log("getRunningGameInfo: " + JSON.stringify(res));
+    });
+  </script>
+</head>
+
+<body>
+  <div class="content" onmousedown="dragMove();">
+
+    <header>
+
+
+      <div class="window-controls-group">
+        <button class="window-control" onclick="showSupport()">
+          <svg class="svg-icon-fill">
+            <use xlink:href="assets/svg/sprite.svg#window-control_support" />
+          </svg>
+        </button>
+
+        <button class="window-control">
+          <svg class="svg-icon-fill">
+            <use xlink:href="assets/svg/sprite.svg#window-control_settings" />
+          </svg>
+        </button>
+
+        <button class="window-control" onclick="minimize()">
+          <svg class="svg-icon-fill">
+            <use xlink:href="assets/svg/sprite.svg#window-control_minimize" />
+          </svg>
+        </button>
+
+        <button class="window-control" onclick="toggleMaximize()">
+          <input type="checkbox" class="maximize-restore-selector toggle-icons" checked />
+          <svg class="svg-icon-fill svg-icon-restore">
+            <use xlink:href="assets/svg/sprite.svg#window-control_restore" />
+          </svg>
+          <svg class="svg-icon-fill svg-icon-maximize">
+            <use xlink:href="assets/svg/sprite.svg#window-control_maximize" />
+          </svg>
+        </button>
+
+        <button class="window-control window-control-close" onclick="closeWindow();">
+          <svg class="svg-icon-fill">
+            <use xlink:href="assets/svg/sprite.svg#window-control_close" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <h1>Hello, world!</h1>
+      <p>You can drag from anywhere you want, and resize from the edges</p>
+
+      <div class="btn-group">
+        <button class="btn" id="close" onclick="closeWindow();">Close</button>
+        <button class="btn" id="run-teamspeak" onclick="runTeamSpeak();">Run TeamSpeak</button>
+        <button class="btn" onclick="takeScreenshot();">Take Screenshot</button>
+        <button class="btn" id="open-subwindow" onclick="openSubWindow();">Open Sub-Window</button>
+      </div>
+
+
+      <img id="screenshot" width="300px"></img>
+    </main>
+  </div>
+
+  <div class="resize horizontal top" onmousedown="dragResize('Top');"></div>
+  <div class="resize vertical left" onmousedown="dragResize('Left');"></div>
+  <div class="resize vertical right" onmousedown="dragResize('Right');"></div>
+  <div class="resize horizontal bottom" onmousedown="dragResize('Bottom');"></div>
+
+  <div class="resize corner top-left" onmousedown="dragResize('TopLeft');"></div>
+  <div class="resize corner top-right" onmousedown="dragResize('TopRight');"></div>
+  <div class="resize corner bottom-left" onmousedown="dragResize('BottomLeft');"></div>
+  <div class="resize corner bottom-right" onmousedown="dragResize('BottomRight');"></div>
+</body>
+
 </html>
