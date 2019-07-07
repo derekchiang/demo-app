@@ -90,28 +90,27 @@
       overwolf.extensions.launch("lmkhofgknaclgcdplfkgcahdkdmomimaoklioonf");
     };
 
-    // this a subset of the features that LoL events provides - however,
-    // when writing an app that consumes events - it is best if you request
-    // only those features that you want to handle.
-    //
-    // NOTE: in the future we'll have a wildcard option to allow retreiving all
-    // features
     var g_interestedInFeatures = [
-      'summoner_info',
-      'gameMode',
-      'teams',
-      'matchState',
       'kill',
       'death',
-      'respawn',
       'assist',
-      'minions',
-      'level',
-      'abilities',
-      'announcer',
-      'counters',
+      'headshot',
+      'round_start',
+      'match_start',
+      'match_end',
+      'team_round_win',
+      'bomb_planted',
+      'bomb_change',
+      'reloading',
+      'fired',
+      'weapon_change',
+      'weapon_acquired',
+      'player_activity_change',
+      'team_set',
+      'info',
+      'roster',
+      'scene',
       'match_info'
-      // 'gold'
     ];
 
     function registerEvents() {
@@ -120,7 +119,7 @@
         console.log("Error: " + JSON.stringify(info));
       });
 
-      // "static" data changed (total kills, username, steam-id)
+      // "static" data changed
       // This will also be triggered the first time we register
       // for events and will contain all the current information
       overwolf.games.events.onInfoUpdates2.addListener(function (info) {
@@ -151,11 +150,11 @@
       }
 
       // NOTE: we divide by 10 to get the game class id without it's sequence number
-      if (Math.floor(gameInfoResult.gameInfo.id / 10) != 5426) {
+      if (Math.floor(gameInfoResult.gameInfo.id / 10) != 7764) {
         return false;
       }
 
-      console.log("LoL Launched");
+      console.log("CSGO Launched");
       return true;
 
     }
@@ -171,11 +170,11 @@
       }
 
       // NOTE: we divide by 10 to get the game class id without it's sequence number
-      if (Math.floor(gameInfo.id / 10) != 5426) {
+      if (Math.floor(gameInfo.id / 10) != 7764) {
         return false;
       }
 
-      console.log("LoL running");
+      console.log("CSGO running");
       return true;
 
     }
@@ -198,11 +197,11 @@
 
     // Start here
     overwolf.games.onGameInfoUpdated.addListener(function (res) {
+      console.log("onGameInfoUpdated: " + JSON.stringify(res));
       if (gameLaunched(res)) {
         registerEvents();
         setTimeout(setFeatures, 1000);
       }
-      console.log("onGameInfoUpdated: " + JSON.stringify(res));
     });
 
     overwolf.games.getRunningGameInfo(function (res) {
@@ -212,6 +211,7 @@
       }
       console.log("getRunningGameInfo: " + JSON.stringify(res));
     });
+
   </script>
 </head>
 
